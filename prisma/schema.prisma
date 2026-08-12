@@ -1,0 +1,181 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  REJECTED
+  SUSPENDED
+}
+
+enum AuditAction {
+  LOGIN
+  LOGOUT
+  REGISTER
+  APPROVE_USER
+  REJECT_USER
+  SUSPEND_USER
+  CREATE
+  UPDATE
+  DELETE
+  STATUS_REQUEST
+  STATUS_APPROVE
+  STATUS_REJECT
+  ROLE_ASSIGN
+}
+
+enum StatusRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id              String       @id @default(uuid())
+  email           String       @unique
+  passwordHash    String
+  fullName        String
+  phone           String?
+  status          UserStatus   @default(PENDING)
+  active          Boolean      @default(true)
+  lastLoginAt     DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  roles           UserRole[]
+  auditEvents     AuditLog[]   @relation("AuditActor")
+  statusRequests  StatusChangeRequest[] @relation("RequestedBy")
+  approvedRequests StatusChangeRequest[] @relation("ApprovedBy")
+  refreshSessions RefreshSession[]
+}
+
+model Role {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  description String?
+  active      Boolean      @default(true)
+  users       UserRole[]
+  permissions RolePermission[]
+  pages       RolePage[]
+}
+
+model UserRole {
+  userId String
+  roleId String
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  @@id([userId, roleId])
+}
+
+model Permission {
+  id          String @id @default(uuid())
+  code        String @unique
+  name        String
+  description String?
+  roles       RolePermission[]
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  @@id([roleId, permissionId])
+}
+
+model Page {
+  id          String @id @default(uuid())
+  name        String
+  route       String @unique
+  icon        String?
+  menuGroup   String @default("Principal")
+  menuOrder   Int @default(0)
+  active      Boolean @default(true)
+  roles       RolePage[]
+}
+
+model RolePage {
+  roleId String
+  pageId String
+  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  page   Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  @@id([roleId, pageId])
+}
+
+model Client {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  name        String
+  document    String?
+  email       String?
+  phone       String?
+  city        String?
+  status      String   @default("ACTIVO")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  requests    Request[]
+}
+
+model Request {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  title       String
+  description String?
+  status      String   @default("PENDIENTE")
+  priority    String   @default("MEDIA")
+  clientId    String?
+  client      Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  statusRequests StatusChangeRequest[]
+}
+
+model StatusChangeRequest {
+  id            String                @id @default(uuid())
+  requestId     String
+  requestedById String
+  approvedById  String?
+  fromStatus    String
+  toStatus      String
+  reason        String
+  status        StatusRequestStatus   @default(PENDING)
+  createdAt     DateTime              @default(now())
+  resolvedAt    DateTime?
+  request       Request @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  requestedBy   User    @relation("RequestedBy", fields: [requestedById], references: [id])
+  approvedBy    User?   @relation("ApprovedBy", fields: [approvedById], references: [id])
+  @@index([status])
+}
+
+model AuditLog {
+  id          String      @id @default(uuid())
+  actorUserId String?
+  action      AuditAction
+  entity      String
+  entityId    String?
+  oldValue    Json?
+  newValue    Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime    @default(now())
+  actor       User?       @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  @@index([createdAt])
+  @@index([actorUserId])
+  @@index([entity, entityId])
+}
+
+model RefreshSession {
+  id        String   @id @default(uuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+}

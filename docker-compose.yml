@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: dashboard_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: dashboard_app
+      POSTGRES_USER: dashboard
+      POSTGRES_PASSWORD: DashboardDB123!
+    ports:
+      - "5432:5432"
+    volumes:
+      - dashboard_pgdata:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: dashboard_app
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://dashboard:DashboardDB123!@postgres:5432/dashboard_app?schema=public
+      JWT_ACCESS_SECRET: CAMBIE_ESTO
+      JWT_REFRESH_SECRET: CAMBIE_ESTO_TAMBIEN
+      JWT_ACCESS_EXPIRES: 15m
+      JWT_REFRESH_EXPIRES: 7d
+      CORS_ORIGIN: http://localhost:3000
+      COOKIE_SECURE: "false"
+      SEED_ADMIN_EMAIL: admin@demo.local
+      SEED_ADMIN_PASSWORD: Admin123!Cambiar
+      SEED_USER_PASSWORD: Usuario123!Cambiar
+      SEED_CLIENT_PASSWORD: Cliente123!Cambiar
+      SEED_PENDING_PASSWORD: Pendiente123!Cambiar
+    ports:
+      - "3000:3000"
+    command: sh -c "npx prisma migrate deploy && npm run prisma:seed && npm start"
+
+volumes:
+  dashboard_pgdata:

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard Empresarial</title>
+<link rel="stylesheet" href="https://www.jeasyui.com/easyui/themes/material/easyui.css">
+<link rel="stylesheet" href="https://www.jeasyui.com/easyui/themes/icon.css">
+<link rel="stylesheet" href="/css/app.css">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://www.jeasyui.com/easyui/jquery.easyui.min.js"></script>
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+</head>
+<body>
+<div id="loginView" class="login-page">
+ <div class="login-card">
+  <div class="logo-circle">D</div>
+  <h1>Dashboard Empresarial</h1>
+  <p class="muted">Acceso seguro al sistema</p>
+  <form id="loginForm">
+   <input id="loginEmail" class="easyui-textbox" style="width:100%" data-options="label:'Correo',labelPosition:'top',required:true">
+   <input id="loginPassword" type="password" class="easyui-textbox" style="width:100%;margin-top:14px" data-options="label:'Contraseña',labelPosition:'top',required:true">
+   <button class="easyui-linkbutton primary-btn" type="submit" style="width:100%;margin-top:20px">Iniciar sesión</button>
+  </form>
+  <a href="#" id="showRegister">Crear cuenta</a>
+  <div class="demo-help">Demo: admin@demo.local / Admin123!Cambiar</div>
+ </div>
+</div>
+
+<div id="registerView" class="login-page hidden">
+ <div class="login-card">
+  <h1>Crear cuenta</h1><p class="muted">El registro requiere aprobación del administrador.</p>
+  <form id="registerForm">
+   <input id="regName" class="easyui-textbox" style="width:100%" data-options="label:'Nombre completo',labelPosition:'top',required:true">
+   <input id="regEmail" class="easyui-textbox" style="width:100%;margin-top:12px" data-options="label:'Correo',labelPosition:'top',required:true">
+   <input id="regPhone" class="easyui-textbox" style="width:100%;margin-top:12px" data-options="label:'Teléfono',labelPosition:'top'">
+   <input id="regPassword" type="password" class="easyui-textbox" style="width:100%;margin-top:12px" data-options="label:'Contraseña',labelPosition:'top',required:true">
+   <button class="easyui-linkbutton primary-btn" type="submit" style="width:100%;margin-top:18px">Enviar registro</button>
+  </form>
+  <a href="#" id="showLogin">Volver al inicio</a>
+ </div>
+</div>
+
+<div id="appView" class="hidden">
+ <div class="app-header">
+  <div class="header-left"><button id="toggleMenu" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-reload'"></button><span class="brand">Dashboard Empresarial</span></div>
+  <div class="header-right"><span id="currentUser"></span><button id="logoutBtn" class="easyui-linkbutton" data-options="plain:true,iconCls:'icon-back'">Salir</button></div>
+ </div>
+ <div class="app-body">
+  <aside id="sidebar" class="sidebar">
+   <div id="menuContainer"></div>
+  </aside>
+  <main id="mainContent" class="main-content">
+   <div id="pageContent"></div>
+  </main>
+ </div>
+</div>
+
+<div id="statusDialog" class="easyui-dialog" title="Solicitar cambio de estado" style="width:430px;padding:20px" data-options="closed:true,modal:true">
+ <input id="statusTarget" type="hidden">
+ <select id="statusNew" class="easyui-combobox" style="width:100%" data-options="label:'Nuevo estado',labelPosition:'top',editable:false">
+  <option value="EN_REVISION">EN REVISIÓN</option><option value="APROBADO">APROBADO</option><option value="RECHAZADO">RECHAZADO</option><option value="CERRADO">CERRADO</option>
+ </select>
+ <input id="statusReason" class="easyui-textbox" multiline="true" style="width:100%;height:100px;margin-top:15px" data-options="label:'Motivo',labelPosition:'top',required:true">
+ <div style="margin-top:15px;text-align:right"><button id="sendStatus" class="easyui-linkbutton primary-btn">Enviar para autorización</button></div>
+</div>
+<script src="/js/app.js"></script>
+</body>
+</html>
